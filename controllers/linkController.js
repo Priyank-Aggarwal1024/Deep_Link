@@ -5,7 +5,7 @@ exports.createShortDeepLink = async (req, res) => {
     const { longURL, userType } = req.body;
     if (!longURL) return res.status(400).json({ error: "URL is required" });
 
-    let extractedPath = longURL.split("/").slice(3).join("/"); // Extract the relevant path
+    let extractedPath = longURL.split("/").slice(3).join("/"); 
     let deepLink = "";
 
     switch (userType) {
@@ -37,7 +37,7 @@ exports.createShortDeepLink = async (req, res) => {
 exports.redirectShortLink = async (req, res) => {
   try {
     const { shortId } = req.params;
-    const userAgent = req.get("User-Agent") || ""; // Get User-Agent
+    const userAgent = req.get("User-Agent") || ""; 
 
     const link = await Link.findOne({ shortId });
     if (!link) {
