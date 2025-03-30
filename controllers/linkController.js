@@ -7,26 +7,32 @@ exports.createShortDeepLink = async (req, res) => {
 
     let extractedPath = longURL.split("/").slice(3).join("/"); 
     let deepLink = "";
+    let iosLink = ""; 
 
     switch (userType) {
       case "customer":
         deepLink = `rydeu://app/${extractedPath}`;
+        iosLink = `rydeu://app/${extractedPath}`;
         break;
       case "supplier":
         deepLink = `rydeu-supplier://app/${extractedPath}`;
+        iosLink = `rydeu-supplie://app/${extractedPath}`; // Keeping iOS consistent
         break;
       case "organization":
         deepLink = `rydeu-org://app/${extractedPath}`;
+        iosLink = `rydeu://app/${extractedPath}`;
         break;
       default:
         deepLink = `rydeu://default/${extractedPath}`;
+        iosLink = `rydeu://app/${extractedPath}`;
     }
 
-    const newLink = await Link.create({ longURL, deepLink, userType });
+    const newLink = await Link.create({ longURL, deepLink, iosLink, userType });
 
     res.json({ 
       shortURL: `${process.env.BASE_URL}/${newLink.shortId}`, 
-      deepLink 
+      deepLink,
+      iosLink
     });
 
   } catch (error) {
@@ -44,23 +50,37 @@ exports.redirectShortLink = async (req, res) => {
       return res.status(404).json({ error: "Short link not found" });
     }
 
-    // Detect if the request is from a mobile browser or app
     const isAndroid = /android/i.test(userAgent);
     const isIOS = /iphone|ipad|ipod/i.test(userAgent);
-    const isMobileApp = /RydeuApp|RydeuSupplier/i.test(userAgent); // Custom app identifiers
+    const isMobileApp = /RydeuApp|RydeuSupplier/i.test(userAgent); 
+
+    let deepLink = link.deepLink;
+    let iosLink = link.iosLink;
+    let webFallback = link.longURL;
 
     if (isMobileApp) {
-      // Redirect to deep link inside the app
-      return res.redirect(link.deepLink);
-    } else if (isAndroid || isIOS) {
-      // Redirect to deep link with fallback to web
-      const appLink = link.deepLink;
-      const webFallback = link.longURL;
-
+      return res.redirect(deepLink);
+    } else if (isAndroid) {
       res.send(`
         <html>
         <head>
-          <meta http-equiv="refresh" content="0; url=${appLink}">
+          <meta http-equiv="refresh" content="0; url=${deepLink}">
+          <script>
+            setTimeout(function() {
+              window.location.href = "${webFallback}";
+            }, 2500);
+          </script>
+        </head>
+        <body>
+          If the app does not open, <a href="${webFallback}">click here</a>.
+        </body>
+        </html>
+      `);
+    } else if (isIOS) {
+      res.send(`
+        <html>
+        <head>
+          <meta http-equiv="refresh" content="0; url=${iosLink}">
           <script>
             setTimeout(function() {
               window.location.href = "${webFallback}";
@@ -73,8 +93,7 @@ exports.redirectShortLink = async (req, res) => {
         </html>
       `);
     } else {
-      // Redirect to web version for desktop browsers
-      return res.redirect(link.longURL);
+      return res.redirect(webFallback);
     }
   } catch (error) {
     res.status(500).json({ error: "Server error" });

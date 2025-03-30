@@ -1,0 +1,22 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "com.rydeu.driver",
+        "paths": [
+          "/*"
+        ]
+      },
+      {
+        "appID": "com.rydeu.app",
+        "paths": [
+          "/*"
+        ]
+      }
+    ]
+  },
+  "appclips": {
+    "apps": null
+  }
+}
