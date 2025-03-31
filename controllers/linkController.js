@@ -16,7 +16,7 @@ exports.createShortDeepLink = async (req, res) => {
         break;
       case "supplier":
         deepLink = `rydeu-supplier://app/${extractedPath}`;
-        iosLink = `rydeu-supplie://app/${extractedPath}`; // Keeping iOS consistent
+        iosLink = `rydeu-supplier://app/${extractedPath}`; // Keeping iOS consistent
         break;
       case "organization":
         deepLink = `rydeu-org://app/${extractedPath}`;
