@@ -1,4 +1,4 @@
-const Link = require("../models/Link");
+const linkModel = require("../models/Link");
 
 exports.createShortDeepLink = async (req, res) => {
   try {
@@ -27,7 +27,7 @@ exports.createShortDeepLink = async (req, res) => {
         iosLink = `rydeu://app/${extractedPath}`;
     }
 
-    const newLink = await Link.create({ longURL, deepLink, iosLink, userType });
+    const newLink = await linkModel.create({ longURL, deepLink, iosLink, userType });
 
     res.json({ 
       shortURL: `${process.env.BASE_URL}/${newLink.shortId}`, 
@@ -45,7 +45,7 @@ exports.redirectShortLink = async (req, res) => {
     const { shortId } = req.params;
     const userAgent = req.get("User-Agent") || ""; 
 
-    const link = await Link.findOne({ shortId });
+    const link = await Lin.findOne({ shortId });
     if (!link) {
       return res.status(404).json({ error: "Short link not found" });
     }
