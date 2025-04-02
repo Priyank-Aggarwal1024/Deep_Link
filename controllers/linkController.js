@@ -45,7 +45,7 @@ exports.redirectShortLink = async (req, res) => {
     const { shortId } = req.params;
     const userAgent = req.get("User-Agent") || ""; 
 
-    const link = await Lin.findOne({ shortId });
+    const link = await linkModel.findOne({ shortId });
     if (!link) {
       return res.status(404).json({ error: "Short link not found" });
     }
