@@ -41,61 +41,37 @@ exports.createShortDeepLink = async (req, res) => {
 };
 
 exports.redirectShortLink = async (req, res) => {
-  try {
-    const { shortId } = req.params;
-    const userAgent = req.get("User-Agent") || ""; 
+try {
+      const { shortId } = req.params;
+      const userAgent = req.get("User-Agent") || "";
+console.log(shortId);
+      // Find non-deleted link
+      const link = await linkModel.findOne({ shortId });
+      if (!link) {
+        return res.status(404).json({ error: "Short link not found" });
+      }
 
-    const link = await linkModel.findOne({ shortId });
-    if (!link) {
-      return res.status(404).json({ error: "Short link not found" });
+      const isAndroid = /android/i.test(userAgent);
+      const isIOS = /iphone|ipad|ipod/i.test(userAgent);
+      const isMobileApp = /RydeuApp|RydeuSupplier/i.test(userAgent);
+
+      let redirectURL = link.longURL;
+
+      // Redirect to deep links only for customer and supplier
+      if ((link.userType === "customer" || link.userType === "supplier") && link.deepLink) {
+        if (isMobileApp) {
+          return res.redirect(link.deepLink);
+        } else if (isIOS && link.iosLink) {
+          redirectURL = link.iosLink;
+        } else if (isAndroid && link.deepLink) {
+          redirectURL = link.deepLink;
+        }
+      }
+
+      return res.redirect(redirectURL);
+    } catch (error) {
+      console.error(Error in handleRedirect: ${error.message});
+      return res.status(500).json({ error: "Server error" });
     }
-
-    const isAndroid = /android/i.test(userAgent);
-    const isIOS = /iphone|ipad|ipod/i.test(userAgent);
-    const isMobileApp = /RydeuApp|RydeuSupplier/i.test(userAgent); 
-
-    let deepLink = link.deepLink;
-    let iosLink = link.iosLink;
-    let webFallback = link.longURL;
-
-    if (isMobileApp) {
-      return res.redirect(deepLink);
-    } else if (isAndroid) {
-      res.send(`
-        <html>
-        <head>
-          <meta http-equiv="refresh" content="0; url=${deepLink}">
-          <script>
-            setTimeout(function() {
-              window.location.href = "${webFallback}";
-            }, 2500);
-          </script>
-        </head>
-        <body>
-          If the app does not open, <a href="${webFallback}">click here</a>.
-        </body>
-        </html>
-      `);
-    } else if (isIOS) {
-      res.send(`
-        <html>
-        <head>
-          <meta http-equiv="refresh" content="0; url=${iosLink}">
-          <script>
-            setTimeout(function() {
-              window.location.href = "${webFallback}";
-            }, 2500);
-          </script>
-        </head>
-        <body>
-          If the app does not open, <a href="${webFallback}">click here</a>.
-        </body>
-        </html>
-      `);
-    } else {
-      return res.redirect(webFallback);
-    }
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
   }
 };
