@@ -73,5 +73,4 @@ console.log(shortId);
       console.error("Error in handleRedirect",error);
       return res.status(500).json({ error: "Server error" });
     }
-  }
 };
