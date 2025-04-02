@@ -70,7 +70,7 @@ console.log(shortId);
 
       return res.redirect(redirectURL);
     } catch (error) {
-      console.error("Error in handleRedirect": ${error});
+      console.error("Error in handleRedirect",error);
       return res.status(500).json({ error: "Server error" });
     }
   }
